@@ -13,7 +13,7 @@ builder.Services.AddAutoMapper(typeof(MappingProfile));
 builder.Services.AddDbContext<AppDb>(opt =>
     opt.UseSqlite("Data Source=app.db"));
 
-// CORS para Flutter web/local (ajusta puertos si usas otros)
+// CORS  for Flutter web/local (adjust ports)
 builder.Services.AddCors(o => o.AddDefaultPolicy(p =>
     p.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod()));
 
@@ -33,12 +33,22 @@ app.UseSwaggerUI();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDb>();
-    db.Database.Migrate();
-    var seedPath = Path.Combine(AppContext.BaseDirectory, "Locations", "locations.co.json");
-    SeedLoader.SeedFromJson(db, seedPath);
+    // Worsk inInMemory and SQL
+    if (db.Database.IsRelational()) db.Database.Migrate();
+    else db.Database.EnsureCreated();
+    
+
+    if (!app.Environment.IsEnvironment("Testing"))
+    {
+        var seedPath = Path.Combine(AppContext.BaseDirectory, "Locations", "locations.co.json");
+        if (File.Exists(seedPath) && !db.Countries.Any())
+        {
+            SeedLoader.SeedFromJson(db, seedPath);
+        }
+    }
 }
 
-// ---- Catálogos
+// ---- Catalogs
 app.MapGet("/catalog/countries", async (AppDb db) =>
     await db.Countries.OrderBy(c => c.Name).ToListAsync());
 
@@ -139,3 +149,7 @@ app.MapGet("/geocode", async (IHttpClientFactory f, string q) =>
 });
 
 app.Run();
+
+
+//To run tests
+public partial class Program { }
