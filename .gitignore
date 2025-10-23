@@ -1,0 +1,7 @@
+build/
+.dart_tool/
+node_modules/
+**/bin/
+**/obj/
+**/app.db
+**/.env
