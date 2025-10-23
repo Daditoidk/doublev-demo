@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+const apiBase = String.fromEnvironment('API_BASE', defaultValue: 'http://localhost:5124');
+
+
 void main() {
   runApp(const MyApp());
 }

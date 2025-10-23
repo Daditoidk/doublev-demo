@@ -1,0 +1,65 @@
+{
+  "Country": { "Code": "CO", "Name": "Colombia" },
+  "Departments": [
+    { "Code": "ANT", "Name": "Antioquia", "Municipalities": [
+      { "Code": "MED", "Name": "Medellín" },
+      { "Code": "BEL", "Name": "Bello" },
+      { "Code": "ENV", "Name": "Envigado" },
+      { "Code": "ITA", "Name": "Itagüí" },
+      { "Code": "RIO", "Name": "Rionegro" },
+      { "Code": "SAB", "Name": "Sabaneta" }
+    ]},
+    { "Code": "CUN", "Name": "Cundinamarca", "Municipalities": [
+      { "Code": "BOG", "Name": "Bogotá" },
+      { "Code": "SOA", "Name": "Soacha" },
+      { "Code": "CHI", "Name": "Chía" },
+      { "Code": "FUN", "Name": "Funza" },
+      { "Code": "ZIP", "Name": "Zipaquirá" },
+      { "Code": "MOS", "Name": "Mosquera" }
+    ]},
+    { "Code": "VAC", "Name": "Valle del Cauca", "Municipalities": [
+      { "Code": "CAL", "Name": "Cali" },
+      { "Code": "PAL", "Name": "Palmira" },
+      { "Code": "YUM", "Name": "Yumbo" },
+      { "Code": "JAM", "Name": "Jamundí" },
+      { "Code": "BUE", "Name": "Buenaventura" }
+    ]},
+    { "Code": "ATL", "Name": "Atlántico", "Municipalities": [
+      { "Code": "BAR", "Name": "Barranquilla" },
+      { "Code": "SOL", "Name": "Soledad" },
+      { "Code": "MAL", "Name": "Malambo" },
+      { "Code": "PTC", "Name": "Puerto Colombia" }
+    ]},
+    { "Code": "SAN", "Name": "Santander", "Municipalities": [
+      { "Code": "BUC", "Name": "Bucaramanga" },
+      { "Code": "FLO", "Name": "Floridablanca" },
+      { "Code": "GIR", "Name": "Girón" },
+      { "Code": "PIE", "Name": "Piedecuesta" }
+    ]},
+    { "Code": "BOL", "Name": "Bolívar", "Municipalities": [
+      { "Code": "CTG", "Name": "Cartagena de Indias" },
+      { "Code": "TUR", "Name": "Turbaco" },
+      { "Code": "ARJ", "Name": "Arjona" }
+    ]},
+    { "Code": "NSA", "Name": "Norte de Santander", "Municipalities": [
+      { "Code": "CUC", "Name": "Cúcuta" },
+      { "Code": "LPA", "Name": "Los Patios" },
+      { "Code": "VRS", "Name": "Villa del Rosario" }
+    ]},
+    { "Code": "MET", "Name": "Meta", "Municipalities": [
+      { "Code": "VVC", "Name": "Villavicencio" },
+      { "Code": "ACA", "Name": "Acacías" },
+      { "Code": "RES", "Name": "Restrepo" }
+    ]},
+    { "Code": "RIS", "Name": "Risaralda", "Municipalities": [
+      { "Code": "PER", "Name": "Pereira" },
+      { "Code": "DOS", "Name": "Dosquebradas" },
+      { "Code": "LVI", "Name": "La Virginia" }
+    ]},
+    { "Code": "MAG", "Name": "Magdalena", "Municipalities": [
+      { "Code": "SMR", "Name": "Santa Marta" },
+      { "Code": "CIE", "Name": "Ciénaga" },
+      { "Code": "FUN2", "Name": "Fundación" }
+    ]}
+  ]
+}
