@@ -35,6 +35,22 @@ class UserDto {
         'birthDate': birthDate?.toIso8601String(),
         'addresses': addresses.map((a) => a.toJson()).toList(),
       };
+
+  UserDto copyWith({
+    int? id,
+    String? firstName,
+    String? lastName,
+    DateTime? birthDate,
+    List<AddressDto>? addresses,
+  }) {
+    return UserDto(
+      id: id ?? this.id,
+      firstName: firstName ?? this.firstName,
+      lastName: lastName ?? this.lastName,
+      birthDate: birthDate ?? this.birthDate,
+      addresses: addresses ?? this.addresses,
+    );
+  }
 }
 
 class AddressDto {
@@ -85,4 +101,26 @@ class AddressDto {
         'latitude': latitude,
         'longitude': longitude,
       };
+
+  AddressDto copyWith({
+    int? id,
+    String? line1,
+    String? line2,
+    String? countryCode,
+    String? departmentCode,
+    String? municipalityCode,
+    double? latitude,
+    double? longitude,
+  }) {
+    return AddressDto(
+      id: id ?? this.id,
+      line1: line1 ?? this.line1,
+      line2: line2 ?? this.line2,
+      countryCode: countryCode ?? this.countryCode,
+      departmentCode: departmentCode ?? this.departmentCode,
+      municipalityCode: municipalityCode ?? this.municipalityCode,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
+    );
+  }
 }

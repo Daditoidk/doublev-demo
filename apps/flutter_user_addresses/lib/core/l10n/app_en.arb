@@ -8,5 +8,102 @@
   "birthDate": "Birth Date",
   "address": "Address",
   "save": "Save",
-  "cancel": "Cancel"
+  "cancel": "Cancel",
+  "profileSaved": "Profile saved",
+  "errorWithMessage": "Error: {message}",
+  "@errorWithMessage": {
+    "placeholders": {
+      "message": {}
+    }
+  },
+  "editProfileTitle": "Edit profile",
+  "noUserSelected": "No user selected.",
+  "addresses": "Addresses",
+  "addAddress": "Add address",
+  "noAddressesYet": "There are no addresses yet.",
+  "addressWithoutLine1": "(No line 1)",
+  "deleteAddressTitle": "Delete address",
+  "confirmDeleteAddress": "Delete \"{address}\"?",
+  "@confirmDeleteAddress": {
+    "placeholders": {
+      "address": {}
+    }
+  },
+  "delete": "Delete",
+  "saveChanges": "Save changes",
+  "saveProfile": "Save profile",
+  "editAddressTitle": "Edit address",
+  "saveAddress": "Save address",
+  "errorSaving": "Error saving: {message}",
+  "@errorSaving": {
+    "placeholders": {
+      "message": {}
+    }
+  },
+  "errorDeleting": "Error deleting: {message}",
+  "@errorDeleting": {
+    "placeholders": {
+      "message": {}
+    }
+  },
+  "addressDialogLabel": "Address (e.g. Funza, Cundinamarca)",
+  "addressExample": "e.g. Funza, Cundinamarca",
+  "defaultAddressExample": "Funza, Cundinamarca",
+  "geocode": "Geocode",
+  "geocodeFailed": "Could not geocode that address",
+  "propertyAdded": "Property added",
+  "goToProfile": "Go to profile",
+  "noUserSelectedHelp": "No user selected.\nCreate one in Onboarding or choose in Profile.",
+  "mustAddAtLeastOneAddress": "You must add at least one address/property.",
+  "addressHasIncompleteFields": "Address {index} has incomplete fields.",
+  "@addressHasIncompleteFields": {
+    "placeholders": {
+      "index": {}
+    }
+  },
+  "welcomeUserSuccess": "Welcome {name}! User created successfully",
+  "@welcomeUserSuccess": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "createProfileTitle": "Create your profile",
+  "personalInformation": "Personal information",
+  "selectDate": "Select date",
+  "yourProperties": "Your properties",
+  "add": "Add",
+  "noPropertiesYet": "You haven't added properties",
+  "addPropertyToContinue": "Add at least one property to continue",
+  "createUserAndContinue": "Create user and continue",
+  "complementOptional": "Complement (optional)",
+  "addressLine1Hint": "e.g. Street 123 #45-67",
+  "addressLine2Hint": "e.g. Apt 301, Tower B",
+  "country": "Country",
+  "department": "Department",
+  "municipality": "Municipality",
+  "requiredField": "Required field",
+  "propertyNumber": "Property {index}",
+  "@propertyNumber": {
+    "placeholders": {
+      "index": {}
+    }
+  },
+  "errorLoadingCountries": "Error loading countries: {message}",
+  "@errorLoadingCountries": {
+    "placeholders": {
+      "message": {}
+    }
+  },
+  "errorLoadingDepartments": "Error loading departments: {message}",
+  "@errorLoadingDepartments": {
+    "placeholders": {
+      "message": {}
+    }
+  },
+  "errorLoadingMunicipalities": "Error loading municipalities: {message}",
+  "@errorLoadingMunicipalities": {
+    "placeholders": {
+      "message": {}
+    }
+  }
 }

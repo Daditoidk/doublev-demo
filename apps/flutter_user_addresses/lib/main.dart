@@ -29,44 +29,12 @@ class MyApp extends StatelessWidget {
         GlobalCupertinoLocalizations.delegate,
       ],
       supportedLocales: AppLocalizations.supportedLocales,
-      home: const HomeTabs(),
       initialRoute: '/onboarding',
       routes: {
         '/onboarding': (context) => const OnboardingScreen(),
         '/map': (context) => const UserMapScreen(),
         '/profile': (context) => const UserProfileScreen(),
       },
-    );
-  }
-}
-
-class HomeTabs extends StatefulWidget {
-  const HomeTabs({super.key});
-  @override
-  State<HomeTabs> createState() => _HomeTabsState();
-}
-
-class _HomeTabsState extends State<HomeTabs> {
-  int index = 0;
-  final pages = const [
-    OnboardingScreen(), // Create user (simple)
-    UserProfileScreen(), // List/select/edit/delete
-    UserMapScreen(), // Map with markers
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: pages[index],
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: index,
-        onDestinationSelected: (i) => setState(() => index = i),
-        destinations: const [
-          NavigationDestination(icon: Icon(Icons.person_add), label: 'Onboard'),
-          NavigationDestination(icon: Icon(Icons.person), label: 'Profile'),
-          NavigationDestination(icon: Icon(Icons.map), label: 'Map'),
-        ],
-      ),
     );
   }
 }

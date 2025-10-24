@@ -8,5 +8,102 @@
   "birthDate": "Fecha de Nacimiento",
   "address": "Dirección",
   "save": "Guardar",
-  "cancel": "Cancelar"
+  "cancel": "Cancelar",
+  "profileSaved": "Perfil guardado",
+  "errorWithMessage": "Error: {message}",
+  "@errorWithMessage": {
+    "placeholders": {
+      "message": {}
+    }
+  },
+  "editProfileTitle": "Editar perfil",
+  "noUserSelected": "No hay usuario seleccionado.",
+  "addresses": "Direcciones",
+  "addAddress": "Agregar dirección",
+  "noAddressesYet": "Aún no hay direcciones.",
+  "addressWithoutLine1": "(Sin línea 1)",
+  "deleteAddressTitle": "Eliminar dirección",
+  "confirmDeleteAddress": "¿Eliminar \"{address}\"?",
+  "@confirmDeleteAddress": {
+    "placeholders": {
+      "address": {}
+    }
+  },
+  "delete": "Eliminar",
+  "saveChanges": "Guardar cambios",
+  "saveProfile": "Guardar perfil",
+  "editAddressTitle": "Editar dirección",
+  "saveAddress": "Guardar dirección",
+  "errorSaving": "Error al guardar: {message}",
+  "@errorSaving": {
+    "placeholders": {
+      "message": {}
+    }
+  },
+  "errorDeleting": "Error al eliminar: {message}",
+  "@errorDeleting": {
+    "placeholders": {
+      "message": {}
+    }
+  },
+  "addressDialogLabel": "Dirección (ej. Funza, Cundinamarca)",
+  "addressExample": "ej. Funza, Cundinamarca",
+  "defaultAddressExample": "Funza, Cundinamarca",
+  "geocode": "Geocodificar",
+  "geocodeFailed": "No se pudo geocodificar esa dirección",
+  "propertyAdded": "Propiedad agregada",
+  "goToProfile": "Ir al perfil",
+  "noUserSelectedHelp": "No hay usuario seleccionado.\nCrea uno en Onboarding o selecciónalo en Perfil.",
+  "mustAddAtLeastOneAddress": "Debes agregar al menos una dirección/propiedad.",
+  "addressHasIncompleteFields": "La dirección {index} tiene campos incompletos.",
+  "@addressHasIncompleteFields": {
+    "placeholders": {
+      "index": {}
+    }
+  },
+  "welcomeUserSuccess": "¡Bienvenido {name}! Usuario creado exitosamente",
+  "@welcomeUserSuccess": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "createProfileTitle": "Crear tu perfil",
+  "personalInformation": "Información personal",
+  "selectDate": "Seleccionar fecha",
+  "yourProperties": "Tus propiedades",
+  "add": "Agregar",
+  "noPropertiesYet": "No has agregado propiedades",
+  "addPropertyToContinue": "Agrega al menos una propiedad para continuar",
+  "createUserAndContinue": "Crear usuario y continuar",
+  "complementOptional": "Complemento (opcional)",
+  "addressLine1Hint": "ej. Calle 123 #45-67",
+  "addressLine2Hint": "ej. Apto 301, Torre B",
+  "country": "País",
+  "department": "Departamento",
+  "municipality": "Municipio",
+  "requiredField": "Campo requerido",
+  "propertyNumber": "Propiedad {index}",
+  "@propertyNumber": {
+    "placeholders": {
+      "index": {}
+    }
+  },
+  "errorLoadingCountries": "Error cargando países: {message}",
+  "@errorLoadingCountries": {
+    "placeholders": {
+      "message": {}
+    }
+  },
+  "errorLoadingDepartments": "Error cargando departamentos: {message}",
+  "@errorLoadingDepartments": {
+    "placeholders": {
+      "message": {}
+    }
+  },
+  "errorLoadingMunicipalities": "Error cargando municipios: {message}",
+  "@errorLoadingMunicipalities": {
+    "placeholders": {
+      "message": {}
+    }
+  }
 }

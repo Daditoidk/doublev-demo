@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_user_addresses/core/l10n/app_localizations.dart';
+import 'package:flutter_user_addresses/features/users/presentation/widgets/address_form_widget.dart';
 import '../../users/user_models.dart';
 import '../../users/user_provider.dart';
 import '../../catalog/catalog_provider.dart';
@@ -46,15 +48,14 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   }
 
   Future<void> _create() async {
+    final l10n = AppLocalizations.of(context)!;
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
     // Validar que al menos tenga una dirección
     if (_addresses.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Debes agregar al menos una dirección/propiedad'),
-        ),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.mustAddAtLeastOneAddress)));
       return;
     }
 
@@ -72,7 +73,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             addr.countryCode == null ||
             addr.departmentCode == null ||
             addr.municipalityCode == null) {
-          throw Exception('La dirección ${i + 1} tiene campos incompletos');
+          throw Exception(l10n.addressHasIncompleteFields(i + 1));
         }
 
         addressDtos.add(
@@ -99,6 +100,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       );
 
       final created = await ref.read(userActionsProvider).create(dto);
+      ref.read(selectedUserIdProvider.notifier).set(created.id);
 
       print('✅ Usuario creado: id=${created.id}');
       print(
@@ -111,9 +113,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              '¡Bienvenido ${created.firstName}! Usuario creado exitosamente',
-            ),
+            content: Text(l10n.welcomeUserSuccess(created.firstName)),
             backgroundColor: Colors.green,
           ),
         );
@@ -121,7 +121,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text(l10n.errorWithMessage(e)),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     } finally {
@@ -131,10 +134,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return AbsorbPointer(
       absorbing: _busy,
       child: Scaffold(
-        appBar: AppBar(title: const Text('Crear tu Perfil'), centerTitle: true),
+        appBar: AppBar(title: Text(l10n.createProfileTitle), centerTitle: true),
         body: Form(
           key: _formKey,
           child: ListView(
@@ -142,7 +146,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             children: [
               // Información personal
               Text(
-                'Información Personal',
+                l10n.personalInformation,
                 style: Theme.of(
                   context,
                 ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
@@ -151,26 +155,25 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
               TextFormField(
                 controller: _first,
-                decoration: const InputDecoration(
-                  labelText: 'Nombre',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.person),
+                decoration: InputDecoration(
+                  labelText: l10n.firstName,
+                  border: const OutlineInputBorder(),
+                  prefixIcon: const Icon(Icons.person),
                 ),
                 validator: (v) =>
-                    (v == null || v.trim().isEmpty) ? 'Nombre requerido' : null,
+                    (v == null || v.trim().isEmpty) ? l10n.requiredField : null,
               ),
               const SizedBox(height: 16),
 
               TextFormField(
                 controller: _last,
-                decoration: const InputDecoration(
-                  labelText: 'Apellido',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.person_outline),
+                decoration: InputDecoration(
+                  labelText: l10n.lastName,
+                  border: const OutlineInputBorder(),
+                  prefixIcon: const Icon(Icons.person_outline),
                 ),
-                validator: (v) => (v == null || v.trim().isEmpty)
-                    ? 'Apellido requerido'
-                    : null,
+                validator: (v) =>
+                    (v == null || v.trim().isEmpty) ? l10n.requiredField : null,
               ),
               const SizedBox(height: 16),
 
@@ -187,14 +190,14 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   if (picked != null) setState(() => _dob = picked);
                 },
                 child: InputDecorator(
-                  decoration: const InputDecoration(
-                    labelText: 'Fecha de Nacimiento',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.calendar_today),
+                  decoration: InputDecoration(
+                    labelText: l10n.birthDate,
+                    border: const OutlineInputBorder(),
+                    prefixIcon: const Icon(Icons.calendar_today),
                   ),
                   child: Text(
                     _dob == null
-                        ? 'Seleccionar fecha'
+                        ? l10n.selectDate
                         : _dob!.toIso8601String().split("T").first,
                   ),
                 ),
@@ -209,7 +212,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Tus Propiedades',
+                    l10n.yourProperties,
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -217,7 +220,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   FilledButton.icon(
                     onPressed: _addAddress,
                     icon: const Icon(Icons.add_home),
-                    label: const Text('Agregar'),
+                    label: Text(l10n.add),
                   ),
                 ],
               ),
@@ -237,12 +240,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'No has agregado propiedades',
+                          l10n.noPropertiesYet,
                           style: TextStyle(color: Colors.grey[600]),
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Agrega al menos una propiedad para continuar',
+                          l10n.addPropertyToContinue,
                           style: TextStyle(
                             color: Colors.grey[500],
                             fontSize: 12,
@@ -277,225 +280,15 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                         width: 20,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : const Text(
-                        'Crear Usuario y Continuar',
-                        style: TextStyle(fontSize: 16),
+                    : Text(
+                        l10n.createUserAndContinue,
+                        style: const TextStyle(fontSize: 16),
                       ),
               ),
 
               const SizedBox(height: 48),
             ],
           ),
-        ),
-      ),
-    );
-  }
-}
-
-// ========== Widget para cada formulario de dirección ==========
-
-class AddressFormData {
-  final line1 = TextEditingController();
-  final line2 = TextEditingController();
-  String? countryCode;
-  String? countryName;
-  String? departmentCode;
-  String? departmentName;
-  String? municipalityCode;
-  String? municipalityName;
-
-  void dispose() {
-    line1.dispose();
-    line2.dispose();
-  }
-}
-
-class AddressFormWidget extends ConsumerStatefulWidget {
-  final int index;
-  final AddressFormData data;
-  final VoidCallback onRemove;
-
-  const AddressFormWidget({
-    super.key,
-    required this.index,
-    required this.data,
-    required this.onRemove,
-  });
-
-  @override
-  ConsumerState<AddressFormWidget> createState() => _AddressFormWidgetState();
-}
-
-class _AddressFormWidgetState extends ConsumerState<AddressFormWidget> {
-  @override
-  Widget build(BuildContext context) {
-    final countriesAsync = ref.watch(countriesProvider);
-    final departmentsAsync = widget.data.countryCode != null
-        ? ref.watch(departmentsProvider(widget.data.countryCode!))
-        : null;
-    final municipalitiesAsync = widget.data.departmentCode != null
-        ? ref.watch(municipalitiesProvider(widget.data.departmentCode!))
-        : null;
-
-    return Card(
-      margin: const EdgeInsets.only(bottom: 16),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Propiedad ${widget.index + 1}',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
-                ),
-                IconButton(
-                  onPressed: widget.onRemove,
-                  icon: const Icon(Icons.delete_outline),
-                  color: Colors.red,
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-
-            // Dirección línea 1
-            TextFormField(
-              controller: widget.data.line1,
-              decoration: const InputDecoration(
-                labelText: 'Dirección *',
-                hintText: 'Ej: Calle 123 #45-67',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.home),
-              ),
-              validator: (v) => (v == null || v.trim().isEmpty)
-                  ? 'Dirección requerida'
-                  : null,
-            ),
-            const SizedBox(height: 12),
-
-            // Dirección línea 2
-            TextFormField(
-              controller: widget.data.line2,
-              decoration: const InputDecoration(
-                labelText: 'Complemento (Opcional)',
-                hintText: 'Ej: Apto 301, Torre B',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.apartment),
-              ),
-            ),
-            const SizedBox(height: 12),
-
-            // País dropdown
-            countriesAsync.when(
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) => Text('Error cargando países: $e'),
-              data: (countries) {
-                return DropdownButtonFormField<String>(
-                  value: widget.data.countryCode,
-                  decoration: const InputDecoration(
-                    labelText: 'País *',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.public),
-                  ),
-                  items: countries.map((c) {
-                    return DropdownMenuItem(value: c.code, child: Text(c.name));
-                  }).toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      widget.data.countryCode = value;
-                      widget.data.countryName = countries
-                          .firstWhere((c) => c.code == value)
-                          .name;
-                      widget.data.departmentCode = null;
-                      widget.data.departmentName = null;
-                      widget.data.municipalityCode = null;
-                      widget.data.municipalityName = null;
-                    });
-                  },
-                  validator: (v) => v == null ? 'País requerido' : null,
-                );
-              },
-            ),
-            const SizedBox(height: 12),
-
-            // Departamento dropdown
-            if (widget.data.countryCode != null)
-              departmentsAsync?.when(
-                    loading: () =>
-                        const Center(child: CircularProgressIndicator()),
-                    error: (e, _) => Text('Error cargando departamentos: $e'),
-                    data: (departments) {
-                      return DropdownButtonFormField<String>(
-                        value: widget.data.departmentCode,
-                        decoration: const InputDecoration(
-                          labelText: 'Departamento *',
-                          border: OutlineInputBorder(),
-                          prefixIcon: Icon(Icons.location_city),
-                        ),
-                        items: departments.map((d) {
-                          return DropdownMenuItem(
-                            value: d.code,
-                            child: Text(d.name),
-                          );
-                        }).toList(),
-                        onChanged: (value) {
-                          setState(() {
-                            widget.data.departmentCode = value;
-                            widget.data.departmentName = departments
-                                .firstWhere((d) => d.code == value)
-                                .name;
-                            widget.data.municipalityCode = null;
-                            widget.data.municipalityName = null;
-                          });
-                        },
-                        validator: (v) =>
-                            v == null ? 'Departamento requerido' : null,
-                      );
-                    },
-                  ) ??
-                  const SizedBox.shrink(),
-            if (widget.data.countryCode != null) const SizedBox(height: 12),
-
-            // Municipio dropdown
-            if (widget.data.departmentCode != null)
-              municipalitiesAsync?.when(
-                    loading: () =>
-                        const Center(child: CircularProgressIndicator()),
-                    error: (e, _) => Text('Error cargando municipios: $e'),
-                    data: (municipalities) {
-                      return DropdownButtonFormField<String>(
-                        value: widget.data.municipalityCode,
-                        decoration: const InputDecoration(
-                          labelText: 'Municipio *',
-                          border: OutlineInputBorder(),
-                          prefixIcon: Icon(Icons.place),
-                        ),
-                        items: municipalities.map((m) {
-                          return DropdownMenuItem(
-                            value: m.code,
-                            child: Text(m.name),
-                          );
-                        }).toList(),
-                        onChanged: (value) {
-                          setState(() {
-                            widget.data.municipalityCode = value;
-                            widget.data.municipalityName = municipalities
-                                .firstWhere((m) => m.code == value)
-                                .name;
-                          });
-                        },
-                        validator: (v) =>
-                            v == null ? 'Municipio requerido' : null,
-                      );
-                    },
-                  ) ??
-                  const SizedBox.shrink(),
-          ],
         ),
       ),
     );
