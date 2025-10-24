@@ -1,0 +1,12 @@
+{
+  "@@locale": "es",
+  "appTitle": "Mis Propiedades",
+  "addProperty": "Agregar Propiedad",
+  "profile": "Perfil",
+  "firstName": "Nombre",
+  "lastName": "Apellido",
+  "birthDate": "Fecha de Nacimiento",
+  "address": "Dirección",
+  "save": "Guardar",
+  "cancel": "Cancelar"
+}

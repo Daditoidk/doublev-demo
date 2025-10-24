@@ -1,0 +1,12 @@
+{
+  "@@locale": "en",
+  "appTitle": "My Properties",
+  "addProperty": "Add Property",
+  "profile": "Profile",
+  "firstName": "First Name",
+  "lastName": "Last Name",
+  "birthDate": "Birth Date",
+  "address": "Address",
+  "save": "Save",
+  "cancel": "Cancel"
+}
