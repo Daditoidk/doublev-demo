@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
 using AutoMapper;
 using System.Globalization;
+using System.Text.RegularExpressions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,7 +14,7 @@ builder.Services.AddAutoMapper(typeof(MappingProfile));
 builder.Services.AddDbContext<AppDb>(opt =>
     opt.UseSqlite("Data Source=app.db"));
 
-// CORS  for Flutter web/local (adjust ports)
+// CORS for Flutter web/local (adjust ports)
 builder.Services.AddCors(o => o.AddDefaultPolicy(p =>
     p.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod()));
 
@@ -33,10 +34,9 @@ app.UseSwaggerUI();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDb>();
-    // Worsk inInMemory and SQL
+    // Works in InMemory and SQL
     if (db.Database.IsRelational()) db.Database.Migrate();
     else db.Database.EnsureCreated();
-    
 
     if (!app.Environment.IsEnvironment("Testing"))
     {
@@ -82,7 +82,7 @@ app.MapGet("/users/{id:int}", async (AppDb db, IMapper mapper, int id) =>
                      : Results.Ok(mapper.Map<UserDto>(u));
 });
 
-app.MapPut("/users/{id:int}", async (AppDb db, IMapper mapper, int id, UserDto dto) =>
+app.MapPut("/users/{id:int}", async (AppDb db, IMapper mapper, IHttpClientFactory httpFactory, int id, UserDto dto) =>
 {
     var entity = await db.Users
         .Include(u => u.Addresses)
@@ -93,35 +93,98 @@ app.MapPut("/users/{id:int}", async (AppDb db, IMapper mapper, int id, UserDto d
     // Map ONLY scalar fields (addresses ignored by profile)
     mapper.Map(dto, entity);
 
-    // Copy old addresses BEFORE changing the collection
-    var incoming = dto.Addresses ?? new List<AddressDto>(); // guard
-    var toDelete = entity.Addresses.ToList();       // ⬅ snapshot
-    db.Addresses.RemoveRange(toDelete);             // delete persisted ones
+    // Remove old addresses
+    var toDelete = entity.Addresses.ToList();
+    db.Addresses.RemoveRange(toDelete);
 
-    // Assign fresh addresses from DTO
+    // Map new addresses and geocode if needed
+    var incoming = dto.Addresses ?? new List<AddressDto>();
     var newAddresses = mapper.Map<List<Address>>(incoming);
-    entity.Addresses = newAddresses;
 
+    foreach (var address in newAddresses)
+    {
+        // Geocode if coordinates are missing
+        if (address.Latitude == null || address.Longitude == null)
+        {
+            var municipality = await db.Municipalities
+                .FirstOrDefaultAsync(m => m.Code == address.MunicipalityCode);
+
+            if (municipality != null)
+            {
+                var rawQuery = $"{address.Line1}, {municipality.Name}, Colombia";
+                var query = CleanAddress(rawQuery);
+                var coords = await GeocodeAddress(httpFactory, query);
+
+                if (coords != null)
+                {
+                    address.Latitude = coords.Value.lat;
+                    address.Longitude = coords.Value.lon;
+                }
+            }
+
+            // Delay to respect rate limit
+            await Task.Delay(1500);
+        }
+    }
+
+    entity.Addresses = newAddresses;
     await db.SaveChangesAsync();
 
     return Results.Ok(mapper.Map<UserDto>(entity));
 });
 
-
-app.MapPost("/users", async (AppDb db, IMapper mapper, UserDto dto) =>
+app.MapPost("/users", async (AppDb db, IMapper mapper, IHttpClientFactory httpFactory, UserDto dto) =>
 {
+    // Map scalar fields only (AutoMapper ignores Addresses collection)
     var entity = mapper.Map<UserProfile>(dto);
-    var addresses = mapper.Map<List<Address>>(dto.Addresses ?? []);
-    entity.Addresses = addresses;      // DTO -> Entity
+
+    // Map addresses separately
+    var addressDtos = dto.Addresses ?? new List<AddressDto>();
+    var addresses = mapper.Map<List<Address>>(addressDtos);
+
+    // Geocode each address if coordinates are missing
+    foreach (var address in addresses)
+    {
+        if (address.Latitude == null || address.Longitude == null)
+        {
+            // Get municipality name for better geocoding
+            var municipality = await db.Municipalities
+                .FirstOrDefaultAsync(m => m.Code == address.MunicipalityCode);
+
+            if (municipality != null)
+            {
+                var rawQuery = $"{address.Line1}, {municipality.Name}, Colombia";
+                var query = CleanAddress(rawQuery);
+                Console.WriteLine($"🌍 Geocoding: {query}");
+
+                var coords = await GeocodeAddress(httpFactory, query);
+
+                if (coords != null)
+                {
+                    address.Latitude = coords.Value.lat;
+                    address.Longitude = coords.Value.lon;
+                    Console.WriteLine($"✅ Coordinates: lat={coords.Value.lat}, lon={coords.Value.lon}");
+                }
+                else
+                {
+                    Console.WriteLine($"⚠️ Could not geocode: {query}");
+                }
+            }
+
+            // Delay to respect Nominatim rate limit (max 1 req/sec)
+            await Task.Delay(1500);
+        }
+    }
+
+    // Assign geocoded addresses to entity
+    entity.Addresses = addresses;
+
     db.Users.Add(entity);
     await db.SaveChangesAsync();
 
-    var outDto = mapper.Map<UserDto>(entity);         // Entity -> DTO
+    var outDto = mapper.Map<UserDto>(entity);
     return Results.Created($"/users/{entity.Id}", outDto);
 });
-
-
-
 
 app.MapDelete("/users/{id:int}", async (AppDb db, int id) =>
 {
@@ -132,26 +195,74 @@ app.MapDelete("/users/{id:int}", async (AppDb db, int id) =>
     return Results.NoContent();
 });
 
-
 app.MapGet("/geocode", async (IHttpClientFactory f, string q) =>
 {
-    var http = f.CreateClient();
+    var coords = await GeocodeAddress(f, q);
+    if (coords == null) return Results.NotFound();
+    return Results.Ok(new { lat = coords.Value.lat, lon = coords.Value.lon });
+});
+
+// Helper method for geocoding
+async Task<(double lat, double lon)?> GeocodeAddress(IHttpClientFactory factory, string query)
+{
+    var http = factory.CreateClient();
     var url = $"https://nominatim.openstreetmap.org/search" +
-             $"?format=json&limit=1&addressdetails=1&extratags=1&countrycodes=co&q={Uri.EscapeDataString(q)}";
+             $"?format=json&limit=1&addressdetails=1&extratags=1&countrycodes=co&q={Uri.EscapeDataString(query)}";
     var req = new HttpRequestMessage(HttpMethod.Get, url);
     req.Headers.UserAgent.ParseAdd("DoubleVDemo/1.0 (cam@dev.com)");
-    var res = await http.SendAsync(req);
-    if (!res.IsSuccessStatusCode) return Results.Problem("Geocoding failed");
-    var parsed = await res.Content.ReadFromJsonAsync<List<NominatimResult>>() ?? new();
-    if (parsed.Count == 0) return Results.NotFound();
-    var p = parsed[0];
-    var lat = double.Parse(p.lat, CultureInfo.InvariantCulture);
-    var lon = double.Parse(p.lon, CultureInfo.InvariantCulture);
-    return Results.Ok(new { lat, lon });
-});
+
+    try
+    {
+        var res = await http.SendAsync(req);
+        if (!res.IsSuccessStatusCode)
+        {
+            Console.WriteLine($"❌ Geocoding failed: {res.StatusCode}");
+            return null;
+        }
+
+        var parsed = await res.Content.ReadFromJsonAsync<List<NominatimResult>>() ?? new();
+        if (parsed.Count == 0)
+        {
+            Console.WriteLine($"❌ No results found for: {query}");
+            return null;
+        }
+
+        var p = parsed[0];
+        var lat = double.Parse(p.lat, CultureInfo.InvariantCulture);
+        var lon = double.Parse(p.lon, CultureInfo.InvariantCulture);
+        return (lat, lon);
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"❌ Geocoding exception: {ex.Message}");
+        return null;
+    }
+}
+
+static string CleanAddress(string query)
+{
+    if (string.IsNullOrWhiteSpace(query))
+        return string.Empty;
+
+    var q = query.Trim();
+
+    // Replace common abbreviations with full forms (helps Nominatim)
+    q = Regex.Replace(q, @"\bCra\.?\b", "Carrera", RegexOptions.IgnoreCase);
+    q = Regex.Replace(q, @"\bCl\.?\b", "Calle", RegexOptions.IgnoreCase);
+    q = Regex.Replace(q, @"\bAv\.?\b", "Avenida", RegexOptions.IgnoreCase);
+    q = Regex.Replace(q, @"\bNo\.?\b", "", RegexOptions.IgnoreCase);
+    q = Regex.Replace(q, @"\bNº\b", "", RegexOptions.IgnoreCase);
+    q = Regex.Replace(q, "#", " ", RegexOptions.IgnoreCase);
+
+    // Remove double spaces or trailing punctuation
+    q = Regex.Replace(q, @"[^\w\s,]", " ");
+    q = Regex.Replace(q, @"\s{2,}", " ").Trim(' ', ',');
+
+    return q;
+}
+
 
 app.Run();
 
-
-//To run tests
+// To run tests
 public partial class Program { }

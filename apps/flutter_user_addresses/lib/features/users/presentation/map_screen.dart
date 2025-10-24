@@ -35,7 +35,7 @@ class UserMapScreen extends ConsumerWidget {
     final users = ref.watch(usersProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Mapa de direcciones')),
+      appBar: AppBar(title: const Text('Mis propiedades')),
       body: users.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Error: $e')),

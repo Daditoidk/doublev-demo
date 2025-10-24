@@ -75,32 +75,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           throw Exception('La dirección ${i + 1} tiene campos incompletos');
         }
 
-        // Geocodificar
-        final query =
-            '${addr.line1.text}, ${addr.municipalityName}, ${addr.departmentName}, ${addr.countryName}';
-        print('Geocoding: $query'); // Debug
-
-        const maxRetries = 2;
-        ({double lat, double lon})? coords;
-
-        for (var retry = 0; retry <= maxRetries; retry++) {
-          try {
-            coords = await ref.read(userActionsProvider).geocode(query);
-            if (coords != null) break;
-
-            if (retry < maxRetries) {
-              await Future.delayed(Duration(seconds: 1));
-            }
-          } catch (e) {
-            if (retry == maxRetries) rethrow;
-            await Future.delayed(Duration(seconds: 1));
-          }
-        }
-
-        if (coords == null) {
-          throw Exception('No se pudo geocodificar la dirección ${i + 1}');
-        }
-
         addressDtos.add(
           AddressDto(
             line1: addr.line1.text.trim(),
@@ -110,8 +84,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             countryCode: addr.countryCode,
             departmentCode: addr.departmentCode,
             municipalityCode: addr.municipalityCode,
-            latitude: coords.lat,
-            longitude: coords.lon,
+            latitude: null,
+            longitude: null,
           ),
         );
       }
@@ -125,6 +99,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       );
 
       final created = await ref.read(userActionsProvider).create(dto);
+
+      print('✅ Usuario creado: id=${created.id}');
+      print(
+        '✅ Direcciones con coordenadas: ${created.addresses.map((a) => "(${a.latitude}, ${a.longitude})").join(", ")}',
+      );
 
       if (mounted) {
         // Navegar al mapa (pushReplacement para no poder volver)
