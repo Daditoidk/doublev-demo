@@ -433,6 +433,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Error loading municipalities: {message}'**
   String errorLoadingMunicipalities(Object message);
+
+  /// No description provided for @addressNoCoords.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t geocode the address; it will not appear on the map.'**
+  String get addressNoCoords;
+
+  /// No description provided for @addressDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Address deleted'**
+  String get addressDeleted;
+
+  /// No description provided for @centerMarkers.
+  ///
+  /// In en, this message translates to:
+  /// **'Center markers'**
+  String get centerMarkers;
+
+  /// No description provided for @myLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'My location'**
+  String get myLocation;
+
+  /// No description provided for @locationPermissionDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Location permission denied. Please enable it in Settings.'**
+  String get locationPermissionDenied;
 }
 
 class _AppLocalizationsDelegate

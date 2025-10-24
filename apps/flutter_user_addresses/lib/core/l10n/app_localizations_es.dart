@@ -198,4 +198,21 @@ class AppLocalizationsEs extends AppLocalizations {
   String errorLoadingMunicipalities(Object message) {
     return 'Error cargando municipios: $message';
   }
+
+  @override
+  String get addressNoCoords =>
+      'No se pudo geocodificar la dirección; no se mostrará en el mapa.';
+
+  @override
+  String get addressDeleted => 'Dirección eliminada';
+
+  @override
+  String get centerMarkers => 'Centrar marcadores';
+
+  @override
+  String get myLocation => 'Mi ubicación';
+
+  @override
+  String get locationPermissionDenied =>
+      'Permiso de ubicación denegado. Actívalo en Ajustes.';
 }

@@ -1,16 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
+import 'package:geolocator/geolocator.dart';
+
 import 'package:flutter_user_addresses/core/l10n/app_localizations.dart';
 import 'package:flutter_user_addresses/features/users/presentation/addres_add_screen.dart';
 import 'package:flutter_user_addresses/features/users/presentation/profile_screen.dart';
 import 'package:flutter_user_addresses/features/users/user_provider.dart';
-import 'package:latlong2/latlong.dart';
 
 import '../../users/user_models.dart';
 
-class UserMapScreen extends ConsumerWidget {
+class UserMapScreen extends ConsumerStatefulWidget {
   const UserMapScreen({super.key});
+
+  @override
+  ConsumerState<UserMapScreen> createState() => _UserMapScreenState();
+}
+
+class _UserMapScreenState extends ConsumerState<UserMapScreen> {
+  final _map = MapController();
+  LatLng? _myLatLng;
 
   List<Marker> _markersForUser(UserDto u) {
     final markers = <Marker>[];
@@ -32,81 +42,67 @@ class UserMapScreen extends ConsumerWidget {
     return markers;
   }
 
-  Future<void> _addProperty(
-    BuildContext context,
-    WidgetRef ref,
-    UserDto user,
-  ) async {
-    final l10n = AppLocalizations.of(context)!;
-    final addrCtrl = TextEditingController(text: l10n.defaultAddressExample);
-    final addressText = await showDialog<String?>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(l10n.addProperty),
-        content: TextField(
-          controller: addrCtrl,
-          decoration: InputDecoration(labelText: l10n.addressDialogLabel),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, null),
-            child: Text(l10n.cancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(ctx, addrCtrl.text.trim()),
-            child: Text(l10n.geocode),
-          ),
-        ],
-      ),
+  Future<void> _centerOnMarkers(List<Marker> markers) async {
+    if (markers.isEmpty) {
+      // fallback: Bogotá
+      _map.move(const LatLng(4.7110, -74.0721), 12);
+      return;
+    }
+    // Fit bounds
+    final latitudes = markers.map((m) => m.point.latitude).toList();
+    final longitudes = markers.map((m) => m.point.longitude).toList();
+    final sw = LatLng(
+      latitudes.reduce((a, b) => a < b ? a : b),
+      longitudes.reduce((a, b) => a < b ? a : b),
     );
+    final ne = LatLng(
+      latitudes.reduce((a, b) => a > b ? a : b),
+      longitudes.reduce((a, b) => a > b ? a : b),
+    );
+    final bounds = LatLngBounds(sw, ne);
+    // padding: left, top, right, bottom
+    _map.fitBounds(
+      bounds,
+      options: const FitBoundsOptions(padding: EdgeInsets.all(48)),
+    );
+  }
 
-    if (addressText == null || addressText.isEmpty) return;
-
-    final actions = ref.read(userActionsProvider);
-
-    // Geocode first
-    final geo = await actions.geocode(addressText);
-    if (geo == null) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(l10n.geocodeFailed)));
-      }
+  Future<void> _goToMyLocation(BuildContext context) async {
+    final l10n = AppLocalizations.of(context)!;
+    LocationPermission perm = await Geolocator.checkPermission();
+    if (perm == LocationPermission.denied) {
+      perm = await Geolocator.requestPermission();
+    }
+    if (perm == LocationPermission.deniedForever ||
+        perm == LocationPermission.denied) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        this.context,
+      ).showSnackBar(SnackBar(content: Text(l10n.locationPermissionDenied)));
       return;
     }
 
-    // Build new Address (for demo, default CO/CUN/BOG — adjust with catalog dropdowns if you want)
-    final newAddress = AddressDto(
-      line1: addressText,
-      countryCode: 'CO',
-      departmentCode: 'CUN',
-      municipalityCode: 'BOG',
-      latitude: geo.lat,
-      longitude: geo.lon,
-    );
-
-    // Update user with the extra address
-    final updated = UserDto(
-      id: user.id,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      birthDate: user.birthDate,
-      addresses: [...user.addresses, newAddress],
-    );
-
-    await actions.update(updated);
-
-    if (context.mounted) {
+    try {
+      final pos = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.best,
+        ),
+      );
+      setState(() {
+        _myLatLng = LatLng(pos.latitude, pos.longitude);
+      });
+      _map.move(_myLatLng!, 12);
+    } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(l10n.propertyAdded)));
+        this.context,
+      ).showSnackBar(SnackBar(content: Text(l10n.errorWithMessage(e))));
     }
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    // we only show the selected user (set in Onboarding or Profile)
     final selectedUser = ref.watch(selectedUserProvider);
 
     return Scaffold(
@@ -139,20 +135,73 @@ class UserMapScreen extends ConsumerWidget {
           LatLng center = const LatLng(4.7110, -74.0721);
           if (markers.isNotEmpty) center = markers.first.point;
 
-          return FlutterMap(
-            options: MapOptions(initialCenter: center, initialZoom: 12),
-            children: [
-              TileLayer(
-                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                userAgentPackageName: 'flutter_user_addresses',
-                tileProvider: NetworkTileProvider(
-                  headers: {
-                    'User-Agent': 'UserAddressesDemo/1.0 (cam@dev.com)',
-                    'Referer': 'http://localhost',
-                  },
+          // Build marker list with optional "my location"
+          final allMarkers = [
+            ...markers,
+            if (_myLatLng != null)
+              Marker(
+                width: 36,
+                height: 36,
+                point: _myLatLng!,
+                child: const Icon(
+                  Icons.my_location,
+                  size: 28,
+                  color: Colors.blue,
                 ),
               ),
-              MarkerLayer(markers: markers),
+          ];
+
+          return Stack(
+            children: [
+              FlutterMap(
+                mapController: _map,
+                options: MapOptions(initialCenter: center, initialZoom: 12),
+                children: [
+                  TileLayer(
+                    urlTemplate:
+                        'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                    userAgentPackageName: 'flutter_user_addresses',
+                    tileProvider: NetworkTileProvider(
+                      headers: {
+                        'User-Agent': 'UserAddressesDemo/1.0 (cam@dev.com)',
+                        'Referer': 'http://localhost',
+                      },
+                    ),
+                  ),
+                  MarkerLayer(markers: allMarkers),
+                ],
+              ),
+              // top-right mini controls
+              Positioned(
+                right: 12,
+                top: 12,
+                child: Column(
+                  children: [
+                    Material(
+                      color: Colors.white,
+                      shape: const CircleBorder(),
+                      elevation: 2,
+                      child: IconButton(
+                        tooltip:
+                            l10n.centerMarkers, // e.g. 'Centrar marcadores'
+                        icon: const Icon(Icons.center_focus_strong),
+                        onPressed: () => _centerOnMarkers(markers),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Material(
+                      color: Colors.white,
+                      shape: const CircleBorder(),
+                      elevation: 2,
+                      child: IconButton(
+                        tooltip: l10n.myLocation, // e.g. 'Mi ubicación'
+                        icon: const Icon(Icons.my_location),
+                        onPressed: () => _goToMyLocation(context),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ],
           );
         },

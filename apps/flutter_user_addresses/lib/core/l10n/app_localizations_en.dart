@@ -197,4 +197,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String errorLoadingMunicipalities(Object message) {
     return 'Error loading municipalities: $message';
   }
+
+  @override
+  String get addressNoCoords =>
+      'We couldn\'t geocode the address; it will not appear on the map.';
+
+  @override
+  String get addressDeleted => 'Address deleted';
+
+  @override
+  String get centerMarkers => 'Center markers';
+
+  @override
+  String get myLocation => 'My location';
+
+  @override
+  String get locationPermissionDenied =>
+      'Location permission denied. Please enable it in Settings.';
 }

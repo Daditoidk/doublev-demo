@@ -105,5 +105,10 @@
     "placeholders": {
       "message": {}
     }
-  }
+  },
+  "addressNoCoords": "No se pudo geocodificar la dirección; no se mostrará en el mapa.",
+  "addressDeleted": "Dirección eliminada",
+  "centerMarkers": "Centrar marcadores",
+  "myLocation": "Mi ubicación",
+  "locationPermissionDenied": "Permiso de ubicación denegado. Actívalo en Ajustes."
 }

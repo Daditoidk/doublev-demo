@@ -4,7 +4,6 @@ import 'package:flutter_user_addresses/core/l10n/app_localizations.dart';
 import 'package:flutter_user_addresses/features/users/presentation/widgets/address_form_widget.dart';
 import '../../users/user_models.dart';
 import '../../users/user_provider.dart';
-import '../../catalog/catalog_provider.dart';
 
 class OnboardingScreen extends ConsumerStatefulWidget {
   const OnboardingScreen({super.key});

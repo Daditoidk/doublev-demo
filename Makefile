@@ -1,9 +1,10 @@
 FLUTTER=apps/flutter_user_addresses
 DOTNET=services/dotnet-api
+DOTNETTEST=services/dotnet-api.Tests
 
-.PHONY: all flutter dotnet  test ci
+.PHONY: all flutter dotnet test-dotnet test-flutter
 
-all: dotnet flutter 
+all: test-dotnet dotnet test-flutter flutter 
 
 dotnet:
 	cd $(DOTNET) && dotnet run
@@ -14,9 +15,10 @@ flutter:
 flutter-mobile:
 	cd $(FLUTTER) && flutter run --dart-define=API_BASE=http://10.0.2.2:5124
 
-test:
-	cd $(FLUTTER) && flutter test
-	# dotnet tests optional if you add a test project
+test-dotnet:
+	cd $(DOTNETTEST) && dotnet test
 
-ci:
-	echo "CI runs in .github/workflows/ci.yml"
+test-flutter:
+	cd $(FLUTTER) && flutter test
+
+	

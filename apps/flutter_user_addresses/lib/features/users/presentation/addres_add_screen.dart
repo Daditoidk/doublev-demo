@@ -53,7 +53,29 @@ class _AddressAddScreenState extends ConsumerState<AddressAddScreen> {
     final updated = user.copyWith(addresses: [...user.addresses, newAddress]);
 
     try {
-      await ref.read(userActionsProvider).update(updated);
+      // Update on server (server geocodes)
+      final updatedUser = await ref.read(userActionsProvider).update(updated);
+
+      // Refresh local cache
+      ref.invalidate(selectedUserProvider);
+
+      // Check if the new address got coords
+      final added = updatedUser.addresses.isNotEmpty
+          ? updatedUser.addresses.last
+          : null;
+
+      if (added != null &&
+          (added.latitude == null || added.longitude == null) &&
+          mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'No se pudo geocodificar la dirección; no se mostrará en el mapa.', // or just plain text if not localized
+            ),
+          ),
+        );
+      }
+
       if (mounted) Navigator.pop(context, true); // indicate success
     } catch (e) {
       if (mounted) {

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_user_addresses/core/l10n/app_localizations.dart';
 import 'package:flutter_user_addresses/features/users/presentation/addres_add_screen.dart';
 import 'package:flutter_user_addresses/features/users/presentation/address_edit_screen.dart';
+import 'package:flutter_user_addresses/features/users/presentation/utils/utils.dart';
 import 'package:flutter_user_addresses/features/users/user_provider.dart';
 
 import '../../users/user_models.dart';
@@ -178,6 +179,29 @@ class _UserProfileEditScreenState extends ConsumerState<UserProfileScreen> {
                       trailing: Wrap(
                         spacing: 8,
                         children: [
+                          if (!hasCoords(a))
+                            const Tooltip(
+                              message:
+                                  'Sin coordenadas — no se mostrará en el mapa',
+                              child: Padding(
+                                padding: EdgeInsets.only(top: 12.0),
+                                child: Icon(
+                                  Icons.warning_amber,
+                                  color: Colors.orange,
+                                ),
+                              ),
+                            )
+                          else
+                            const Tooltip(
+                              message: 'Geocodificado',
+                              child: Padding(
+                                padding: EdgeInsets.only(top: 12.0),
+                                child: Icon(
+                                  Icons.check_circle,
+                                  color: Colors.green,
+                                ),
+                              ),
+                            ),
                           IconButton(
                             icon: const Icon(Icons.edit),
                             onPressed: () async {

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_user_addresses/core/l10n/app_localizations.dart';
+import 'package:flutter_user_addresses/features/users/presentation/utils/utils.dart';
 import 'package:flutter_user_addresses/features/users/presentation/widgets/address_form_widget.dart';
 import 'package:flutter_user_addresses/features/users/user_provider.dart';
 
@@ -42,29 +43,45 @@ class _AddressEditScreenState extends ConsumerState<AddressEditScreen> {
     super.dispose();
   }
 
-  AddressDto _toDto() => AddressDto(
-    line1: _form.line1.text.trim(),
-    line2: _form.line2.text.trim().isEmpty ? null : _form.line2.text.trim(),
-    countryCode: _form.countryCode,
-    departmentCode: _form.departmentCode,
-    municipalityCode: _form.municipalityCode,
-    // Server will re-geocode:
-    latitude: null,
-    longitude: null,
-  );
-
   Future<void> _save(UserDto user) async {
     final l10n = AppLocalizations.of(context)!;
     if (!(_formKey.currentState?.validate() ?? false)) return;
     setState(() => _saving = true);
 
-    final updated = [...user.addresses];
-    updated[widget.index] = _toDto();
+    // Build the edited address (server will re-geocode)
+    final editedAddress = AddressDto(
+      line1: _form.line1.text.trim(),
+      line2: _form.line2.text.trim().isEmpty ? null : _form.line2.text.trim(),
+      countryCode: _form.countryCode,
+      departmentCode: _form.departmentCode,
+      municipalityCode: _form.municipalityCode,
+      latitude: null,
+      longitude: null,
+    );
 
-    final payload = user.copyWith(addresses: updated);
+    final updatedList = [...user.addresses];
+    updatedList[widget.index] = editedAddress;
 
     try {
-      await ref.read(userActionsProvider).update(payload);
+      // PUT /users/{id} — server geocodes
+      final updatedUser = await ref
+          .read(userActionsProvider)
+          .update(user.copyWith(addresses: updatedList));
+
+      // refresh caches (Map/Profile)
+      ref.invalidate(selectedUserProvider);
+
+      // Toast if the edited address has no coords
+      AddressDto? returned;
+      if (widget.index >= 0 && widget.index < updatedUser.addresses.length) {
+        returned = updatedUser.addresses[widget.index];
+      }
+      if (returned != null && !hasCoords(returned) && mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l10n.addressNoCoords)));
+      }
+
       if (mounted) Navigator.pop(context, true);
     } catch (e) {
       if (mounted) {
@@ -79,6 +96,7 @@ class _AddressEditScreenState extends ConsumerState<AddressEditScreen> {
 
   Future<void> _delete(UserDto user) async {
     final l10n = AppLocalizations.of(context)!;
+
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -101,9 +119,19 @@ class _AddressEditScreenState extends ConsumerState<AddressEditScreen> {
     setState(() => _saving = true);
     try {
       final updated = [...user.addresses]..removeAt(widget.index);
-      final payload = user.copyWith(addresses: updated);
-      await ref.read(userActionsProvider).update(payload);
-      if (mounted) Navigator.pop(context, true);
+      await ref
+          .read(userActionsProvider)
+          .update(user.copyWith(addresses: updated));
+
+      // refresh caches (Map/Profile)
+      ref.invalidate(selectedUserProvider);
+
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l10n.addressDeleted)));
+        Navigator.pop(context, true);
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(

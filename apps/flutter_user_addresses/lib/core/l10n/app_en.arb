@@ -105,5 +105,10 @@
     "placeholders": {
       "message": {}
     }
-  }
+  },
+  "addressNoCoords": "We couldn't geocode the address; it will not appear on the map.",
+  "addressDeleted": "Address deleted",
+  "centerMarkers": "Center markers",
+  "myLocation": "My location",
+  "locationPermissionDenied": "Location permission denied. Please enable it in Settings."
 }
