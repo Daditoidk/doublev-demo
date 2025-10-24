@@ -7,7 +7,7 @@ public class MappingProfile : Profile
         // DTO -> Entity
         CreateMap<UserDto, UserProfile>()
             .ForMember(d => d.Id, o => o.Ignore())
-            .ForMember(d => d.Addresses, o => o.Ignore()); // ⬅️ IMPORTANT: don't map collection here
+            .ForMember(d => d.Addresses, o => o.Ignore()); 
 
         CreateMap<AddressDto, Address>()
             .ForMember(d => d.Id, o => o.Ignore())

@@ -110,7 +110,9 @@ app.MapPut("/users/{id:int}", async (AppDb db, IMapper mapper, int id, UserDto d
 
 app.MapPost("/users", async (AppDb db, IMapper mapper, UserDto dto) =>
 {
-    var entity = mapper.Map<UserProfile>(dto);        // DTO -> Entity
+    var entity = mapper.Map<UserProfile>(dto);
+    var addresses = mapper.Map<List<Address>>(dto.Addresses ?? []);
+    entity.Addresses = addresses;      // DTO -> Entity
     db.Users.Add(entity);
     await db.SaveChangesAsync();
 

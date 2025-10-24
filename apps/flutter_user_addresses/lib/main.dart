@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_user_addresses/core/l10n/app_localizations.dart';
 import 'package:flutter_user_addresses/features/users/presentation/map_screen.dart';
-
-
-const apiBase = String.fromEnvironment('API_BASE', defaultValue: 'http://localhost:5124');
+import 'package:flutter_user_addresses/features/users/presentation/onboarding_screen.dart';
+import 'package:flutter_user_addresses/features/users/presentation/profile_screen.dart';
 
 
 void main() {
-  runApp(const MyApp());
+  runApp(const ProviderScope(child: MyApp()));
 }
 
 class MyApp extends StatelessWidget {
@@ -29,7 +29,44 @@ class MyApp extends StatelessWidget {
         GlobalCupertinoLocalizations.delegate,
       ],
       supportedLocales: AppLocalizations.supportedLocales,
-      home: const MapScreen(),
+      home: const HomeTabs(),
+      initialRoute: '/onboarding',
+      routes: {
+        '/onboarding': (context) => const OnboardingScreen(),
+        '/map': (context) => const UserMapScreen(),
+        '/profile': (context) => const UserProfileScreen(),
+      },
+    );
+  }
+}
+
+class HomeTabs extends StatefulWidget {
+  const HomeTabs({super.key});
+  @override
+  State<HomeTabs> createState() => _HomeTabsState();
+}
+
+class _HomeTabsState extends State<HomeTabs> {
+  int index = 0;
+  final pages = const [
+    OnboardingScreen(), // Create user (simple)
+    UserProfileScreen(), // List/select/edit/delete
+    UserMapScreen(), // Map with markers
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: pages[index],
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: index,
+        onDestinationSelected: (i) => setState(() => index = i),
+        destinations: const [
+          NavigationDestination(icon: Icon(Icons.person_add), label: 'Onboard'),
+          NavigationDestination(icon: Icon(Icons.person), label: 'Profile'),
+          NavigationDestination(icon: Icon(Icons.map), label: 'Map'),
+        ],
+      ),
     );
   }
 }
